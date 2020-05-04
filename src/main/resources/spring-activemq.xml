@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-4.2.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+	
+	<!-- 1.ActiveMQConnectionFactory -->
+	<bean id="mqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<constructor-arg name="userName" value="" />
+		<constructor-arg name="password" value="" />
+		<constructor-arg name="brokerURL" value="tcp://localhost:61616" />
+	</bean>
+	<!-- 2.CachingConnectionFactory -->
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory" ref="mqConnectionFactory" />
+		<property name="sessionCacheSize" value="20"/>
+	</bean>
+	<!-- 3.配置一个消息队列 -->
+	<bean id="emailQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg name="name" value="email"/>
+		
+	</bean>
+	<!-- 4.配置监听器 -->
+	<bean id="emailListener" class="com.etoak.listener.EmailListener" />
+	<!-- 5.监听器容器 -->
+	<bean class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="emailQueue" />
+		<property name="messageListener" ref="emailListener" />
+		<property name="sessionAcknowledgeMode" value="2" />
+	</bean>
+</beans>
